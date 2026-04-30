@@ -13,8 +13,15 @@
 - **命名规范**：
   - 目录格式：`src/<类别>/`，类别名必须是英文小写单词或短语，用下划线分隔，如 `scraper`, `data_process`, `api_serve`。
   - 脚本格式：`src/<类别>/<功能>.py`，脚本名必须用英文小写单词或下划线分隔，如 `news_spider.py`, `csv_cleaner.py`。
+  - **多源问题处理**（**重要**）：
+    - 如果同一功能有多个"源"或"变种"（如多个新闻网站、多个数据源），必须在脚本名或目录中明确标识源。
+    - **方案 1 - 源标识后缀**：脚本名包含源名称，如 `news_spider_sina.py`, `news_spider_tencent.py`, `news_spider_netease.py`。
+    - **方案 2 - 源隔离目录**：在类别下创建源子目录，如 `src/scraper/sina/news_spider.py`, `src/scraper/tencent/news_spider.py`。
+    - 选择哪种方案由项目根据源的数量和复杂度决定，但**必须一致**，不能混用。
+    - 源的名称必须清晰简洁，例如不要用 `news_spider_v1.py`、`news_spider_new.py` 这种模糊名称。
   - **禁止使用**：`script1.py`, `test.py`, `main.py`, `temp.py`, `misc.py`, `tmp` 等无意义的名称。
-  - 文件名即说明：看到文件名应该能理解脚本用途，不需要额外文档。
+  - **禁止使用**：`news_spider_v1.py`, `news_spider_new.py`, `news_spider_backup.py` 等含有版本号或状态标记的名称。
+  - 文件名即说明：看到文件名应该能理解脚本用途和对应的源，不需要额外文档。
 - **执行规范**：
   - 进入脚本所在目录后运行脚本：`cd src/<类别> && python <功能>.py`
   - 脚本的工作目录（`cwd`）就是该脚本所在目录。
@@ -59,15 +66,18 @@
 - `src/<类别>/`：按功能类别分组。类别应该用英文单词表示，如 `scraper`, `data_process`, `api_serve`, `analysis`。
   - 每个类别名称应该清晰表达其用途，看到名称就知道该目录里的脚本做什么。
 - `src/<类别>/<脚本>.py`：脚本文件。
+- **多源隔离结构**（当脚本有多个源/变种时）：
+  - **选择方案**：`src/<类别>/<源>/<脚本>.py`，例如 `src/scraper/sina/news_spider.py`, `src/scraper/tencent/news_spider.py`。
+  - 源目录名必须清晰，如 `sina`, `tencent`, `netease`，禁止用 `source1`, `src_a` 等模糊名称。
 - `src/lib/`：共享代码库。所有脚本可以导入这里的模块。
-- 每个脚本可包含子目录：
+- 每个脚本的工作目录可包含子目录：
   - `logs/` - 日志文件
   - `output/` - 输出数据
   - `temp/` - 临时文件
   - `config/` - 配置文件（结构定义，不含敏感值）
   - `data/` - 输入数据（如需要）
-- 脚本数量超过 10 个时，建议在每个类别目录下添加 `README.md`，列出该目录的所有脚本及其功能说明。
-- **禁止使用**：目录名 `misc/`, `temp/`, `test/`, `old/` 等无意义的名称。
+- 脚本数量超过 10 个时，建议在每个类别或源目录下添加 `README.md`，列出该目录的所有脚本及其功能说明。
+- **禁止使用**：目录名 `misc/`, `temp/`, `test/`, `old/`, `source1/`, `src_a/` 等无意义的名称。
 
 ## 脚本示例（Typer 入口）
 ```python
@@ -143,12 +153,17 @@ python example.py --input data.csv --output result.json --verbose
 
 | 脚本位置 | 功能说明 | 状态 |
 |---------|--------|------|
-| `src/scraper/news_spider.py` | 爬取新闻数据 | 示例 |
+| `src/scraper/sina/news_spider.py` 或 `src/scraper/news_spider_sina.py` | 爬取新浪新闻数据 | 示例 |
+| `src/scraper/tencent/news_spider.py` 或 `src/scraper/news_spider_tencent.py` | 爬取腾讯新闻数据 | 示例 |
 | `src/data_process/csv_cleaner.py` | 清理 CSV 文件 | 示例 |
 | `src/api_serve/serve_data.py` | 启动数据 API 服务 | 示例 |
 
 ## 违规示例（严禁）
 - ❌ 脚本名：`script.py`, `test.py`, `tmp.py`, `main.py` - 不清晰，违反命名规范
+- ❌ **命名冲突**：多个新闻爬虫都叫 `news_spider.py`，导致无法区分 - 应该用 `news_spider_sina.py`, `news_spider_tencent.py` 或 `src/scraper/sina/news_spider.py`
+- ❌ 混用两种源隔离方案：有些脚本用 `news_spider_sina.py`，有些用 `src/scraper/sina/news_spider.py` - 必须统一
+- ❌ 模糊的源名称：`news_spider_v1.py`, `news_spider_new.py`, `news_spider_backup.py` - 应该用清晰的源标识
+- ❌ 无意义的源目录：`src/scraper/source1/`, `src/scraper/src_a/` - 应该用 `sina`, `tencent` 等具体名称
 - ❌ 输出文件到根目录：脚本生成的文件在 `/Users/agentj/Documents/VSC/localscript/` 而不是脚本目录内
 - ❌ 硬编码 API Key：`api_key = "sk_xxx"` 而不是从环境变量读取
 - ❌ 脚本间调用：`from src.scraper.spider import func` 应改为从 `src/lib` 导入公共模块
@@ -160,5 +175,6 @@ python example.py --input data.csv --output result.json --verbose
 - 让每个脚本的功能一目了然，避免故意混淆或模糊。
 - 让依赖管理集中、版本可控、可复现。
 - 让目录结构清晰，扩展到几百个脚本也不会混乱。
+- **让同一功能的多个源或变种可以并存，无命名冲突**，通过源标识或源目录区分。
 - 让 AI 和新开发者进来时，看到具体、明确、可验证的规范，无法故意曲解。
 - 让脚本执行环境独立、输出隔离、便于维护和调试。
