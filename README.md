@@ -349,6 +349,7 @@ python example.py --input data.csv --output result.json --verbose
 
 | 脚本位置 | 功能说明 | 状态 |
 |---------|--------|------|
+| `src/scraper/google/news_spider.py` | 从 Google News 爬取新闻文章 | ✅ 活跃 |
 | `src/scraper/sina/news_spider.py` 或 `src/scraper/news_spider_sina.py` | 爬取新浪新闻数据 | 示例 |
 | `src/scraper/tencent/news_spider.py` 或 `src/scraper/news_spider_tencent.py` | 爬取腾讯新闻数据 | 示例 |
 | `src/data_process/csv_cleaner.py` | 清理 CSV 文件 | 示例 |
